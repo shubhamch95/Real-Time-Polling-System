@@ -9,7 +9,6 @@ const { syncModels } = require('./src/models');
 const kafkaService = require('./src/services/kafkaService');
 const websocketService = require('./src/services/websocketService');  // Add this import
 
-
 const app = express();
 const PORT = process.env.PORT || 3000;
 

@@ -1,128 +1,73 @@
-// src/services/leaderboardService.js
-const { Poll, Option, Vote, sequelize } = require('../models');
-const { Op } = require('sequelize');
+const { Poll, Option } = require('../models');
 
-// Exporting functions at the start
-exports.getLeaderboard = async (pollId, timeframe) => {
+exports.getLeaderboard = async (pollId) => {
     try {
-        const timeFilter = _getTimeFilter(timeframe);
-
-        const options = await Option.findAll({
-
-            where: {
-                pollId: pollId
-            },
-            attributes: [
-                'id',
-                'text',
-                'voteCount',
-                [sequelize.literal('(SELECT COUNT(*) FROM votes WHERE votes.optionId = Option.id AND votes.createdAt >= :startDate)'), 'periodVotes']
-            ],
-            replacements: {
-                startDate: timeFilter.startDate
-            },
-            order: [[sequelize.literal('periodVotes'), 'DESC']],
-            include: [{
-                model: Poll,
-                attributes: ['title']
-            }]
-        });
-
-        return options.map(option => ({
-            optionId: option.id,
-            text: option.text,
-            totalVotes: option.voteCount,
-            periodVotes: parseInt(option.getDataValue('periodVotes')),
-            pollTitle: option.Poll.title
-        }));
-    } catch (error) {
-        throw new Error(`Failed to get leaderboard: ${error.message}`);
-    }
-};
-
-exports.getPollStats = async (pollId) => {
-    try {
+        // Fetch the poll with its options
         const poll = await Poll.findByPk(pollId, {
-            include: [{
-                model: Option,
-                attributes: ['id', 'text', 'voteCount']
-            }]
+            include: [
+                {
+                    model: Option,
+                    attributes: ['id', 'text', 'voteCount'],
+                    order: [['voteCount', 'DESC']],
+                },
+            ],
         });
 
         if (!poll) {
             throw new Error('Poll not found');
         }
 
-        const totalVotes = poll.Options.reduce((sum, option) => sum + option.voteCount, 0);
-        const optionStats = poll.Options.map(option => ({
-            optionId: option.id,
-            text: option.text,
-            votes: option.voteCount,
-            percentage: totalVotes > 0 ? ((option.voteCount / totalVotes) * 100).toFixed(2) : 0
-        }));
+        // Sort options by vote count in descending order
+        const options = poll.Options.sort((a, b) => b.voteCount - a.voteCount);
 
         return {
             pollId: poll.id,
-            title: poll.title,
-            totalVotes,
-            optionStats,
-            createdAt: poll.createdAt,
-            endDate: poll.endDate
+            pollTitle: poll.title,
+            leaderboard: options.map(option => ({
+                optionId: option.id,
+                text: option.text,
+                voteCount: option.voteCount,
+            })),
         };
     } catch (error) {
-        throw new Error(`Failed to get poll stats: ${error.message}`);
+        console.error('Error in getLeaderboard service:', error);
+        throw new Error(`Failed to fetch leaderboard: ${error.message}`);
     }
 };
 
-exports.getTopPolls = async (limit = 10, timeframe = 'all') => {
+// Fetch leaderboard for a specific option in a poll
+exports.getLeaderboardForOption = async (pollId, optionId) => {
     try {
-        const timeFilter = _getTimeFilter(timeframe);
-
-        const polls = await Poll.findAll({
-            attributes: [
-                'id',
-                'title',
-                [sequelize.literal(`(
-                    SELECT SUM(options.voteCount) 
-                    FROM options 
-                    WHERE options.pollId = Poll.id
-                )`), 'totalVotes']
+        // Fetch the poll with the specific option
+        const poll = await Poll.findOne({
+            where: { id: pollId },
+            include: [
+                {
+                    model: Option,
+                    where: { id: optionId }, // Only fetch the specified option
+                    attributes: ['id', 'text', 'voteCount'],
+                },
             ],
-            where: {
-                createdAt: {
-                    [Op.gte]: timeFilter.startDate
-                }
-            },
-            order: [[sequelize.literal('totalVotes'), 'DESC']],
-            limit: limit
         });
 
-        return polls.map(poll => ({
+        if (!poll) return null; // Return null if poll doesn't exist
+
+        // Find the specific option and its vote count
+        const option = poll.Options[0]; // Assuming there's only one option with the specified optionId
+
+        if (!option) return null; // Return null if option doesn't exist
+
+        return {
             pollId: poll.id,
-            title: poll.title,
-            totalVotes: parseInt(poll.getDataValue('totalVotes')) || 0
-        }));
+            pollTitle: poll.title,
+            optionId: option.id,
+            optionText: option.text,
+            voteCount: option.voteCount,
+        };
     } catch (error) {
-        throw new Error(`Failed to get top polls: ${error.message}`);
+        console.error('Error in getLeaderboardForOption service:', error);
+        throw new Error(`Failed to fetch leaderboard for option ${optionId} in poll ${pollId}: ${error.message}`);
     }
 };
 
-// Helper function to calculate time filter
-const _getTimeFilter = (timeframe) => {
-    const now = new Date();
-    let startDate = new Date(0); // Default to beginning of time
 
-    switch (timeframe) {
-        case 'daily':
-            startDate = new Date(now.setHours(0, 0, 0, 0));
-            break;
-        case 'weekly':
-            startDate = new Date(now.setDate(now.getDate() - 7));
-            break;
-        case 'monthly':
-            startDate = new Date(now.setMonth(now.getMonth() - 1));
-            break;
-    }
-
-    return { startDate };
-};

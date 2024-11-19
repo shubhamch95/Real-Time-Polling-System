@@ -1,6 +1,7 @@
 const { producer, consumer, TOPICS } = require('../config/kafka');
 const { Vote, Option } = require('../models');
 const { WebSocketServer } = require('../services/websocketService');
+const { v4: uuidv4, validate } = require('uuid'); // Import validate function
 
 const kafkaService = {
     async initialize() {
@@ -21,6 +22,20 @@ const kafkaService = {
 
     async sendVote(voteData) {
         try {
+            // Log the vote data before sending
+            console.log('Sending vote to Kafka:', voteData);
+
+            // Validate UUID for optionId using the validate function
+            if (!validate(voteData.optionId)) {
+                throw new Error('Invalid UUID format for optionId');
+            }
+
+            // Validate UUID for userId using the validate function if necessary
+            if (!validate(voteData.userId)) {
+                throw new Error('Invalid UUID format for userId');
+            }
+
+            // Send vote data to Kafka
             await producer.send({
                 topic: TOPICS.VOTES,
                 messages: [
@@ -31,6 +46,7 @@ const kafkaService = {
                 ]
             });
 
+            console.log('Vote successfully sent to Kafka');
             return true;
         } catch (error) {
             console.error('Failed to send vote to Kafka:', error);
@@ -60,6 +76,17 @@ async function startConsumer() {
                 });
 
                 const voteData = JSON.parse(message.value.toString());
+
+                // Validate UUID for optionId and userId
+                if (!validate(voteData.optionId)) {
+                    console.error('Invalid UUID format for optionId');
+                    return;
+                }
+                if (!validate(voteData.userId)) {
+                    console.error('Invalid UUID format for userId');
+                    return;
+                }
+
                 await processVote(voteData);
             }
         });
@@ -72,11 +99,13 @@ async function startConsumer() {
 async function processVote(voteData) {
     try {
         await Option.sequelize.transaction(async (t) => {
+            // Create a vote entry
             await Vote.create({
                 userId: voteData.userId,
                 optionId: voteData.optionId
             }, { transaction: t });
 
+            // Increment the vote count for the selected option
             const option = await Option.findByPk(voteData.optionId, { transaction: t });
             await option.increment('voteCount', { transaction: t });
 
@@ -85,6 +114,7 @@ async function processVote(voteData) {
                 transaction: t
             });
 
+            // Broadcast the vote update through WebSocket
             WebSocketServer.broadcast('voteUpdate', {
                 pollId: updatedOption.Poll.id,
                 optionId: updatedOption.id,

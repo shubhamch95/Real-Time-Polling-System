@@ -1,75 +1,59 @@
-// src/controllers/leaderboardController.js
 const leaderboardService = require('../services/leaderboardService');
 
+// Get the leaderboard for a poll
 exports.getLeaderboard = async (req, res) => {
+    const { pollId } = req.params;
+
+    if (!pollId) {
+        return res.status(400).json({
+            success: false,
+            message: 'Poll ID is required',
+        });
+    }
+
     try {
-        const { pollId } = req.params;
-        const timeframe = req.query.timeframe || 'all'; // 'all', 'daily', 'weekly', 'monthly'
-
-        if (!pollId) {
-            return res.status(400).json({
-                success: false,
-                message: 'Poll ID is required'
-            });
-        }
-
-        const leaderboard = await leaderboardService.getLeaderboard(pollId, timeframe);
-
-        res.json({
+        const leaderboard = await leaderboardService.getLeaderboard(pollId);
+        return res.json({
             success: true,
-            data: leaderboard
+            data: leaderboard,
         });
     } catch (error) {
         console.error('Error in getLeaderboard controller:', error);
-        res.status(500).json({
+        const statusCode = error.message === 'Poll not found' ? 404 : 500;
+        return res.status(statusCode).json({
             success: false,
-            message: error.message
+            message: error.message,
         });
     }
 };
 
-exports.getPollStats = async (req, res) => {
-    try {
-        const { pollId } = req.params;
+exports.getLeaderboardForOption = async (req, res) => {
+    const { pollId, optionId } = req.params;
 
-        if (!pollId) {
-            return res.status(400).json({
+    try {
+        const option = await leaderboardService.getLeaderboardForOption(pollId, optionId);
+        if (!option) {
+            return res.status(404).json({
                 success: false,
-                message: 'Poll ID is required'
+                message: 'Option not found in the given poll.',
             });
         }
 
-        const stats = await leaderboardService.getPollStats(pollId);
-
-        res.json({
+        return res.json({
             success: true,
-            data: stats
+            data: option,
         });
     } catch (error) {
-        console.error('Error in getPollStats controller:', error);
-        res.status(500).json({
+        console.error('Error in getLeaderboardForOption controller:', error);
+        return res.status(500).json({
             success: false,
-            message: error.message
+            message: 'Failed to retrieve leaderboard for the specific option.',
         });
     }
 };
 
-exports.getTopPolls = async (req, res) => {
-    try {
-        const limit = parseInt(req.query.limit) || 10;
-        const timeframe = req.query.timeframe || 'all';
 
-        const topPolls = await leaderboardService.getTopPolls(limit, timeframe);
 
-        res.json({
-            success: true,
-            data: topPolls
-        });
-    } catch (error) {
-        console.error('Error in getTopPolls controller:', error);
-        res.status(500).json({
-            success: false,
-            message: error.message
-        });
-    }
-};
+
+
+
