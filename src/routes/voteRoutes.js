@@ -6,3 +6,4 @@ const voteController = require('../controllers/voteController');
 router.post('/vote/:optionId', voteController.castVote);
 
 module.exports = router;
+

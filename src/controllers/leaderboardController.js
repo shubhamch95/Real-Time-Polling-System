@@ -1,6 +1,5 @@
 const leaderboardService = require('../services/leaderboardService');
 
-// Get the leaderboard for a poll
 exports.getLeaderboard = async (req, res) => {
     const { pollId } = req.params;
 

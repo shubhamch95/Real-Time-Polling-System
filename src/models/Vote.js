@@ -1,4 +1,3 @@
-// src/models/Vote.js
 const { DataTypes } = require('sequelize');
 const { sequelize } = require('../config/database');
 
@@ -17,8 +16,8 @@ const Vote = sequelize.define('Vote', {
         allowNull: false
     }
 }, {
-    timestamps: true,  // This is important
-    tableName: 'votes',  // Explicitly set table name
+    timestamps: true,
+    tableName: 'votes',
     indexes: [
         {
             unique: true,

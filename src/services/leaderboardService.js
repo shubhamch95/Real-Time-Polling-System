@@ -13,6 +13,7 @@ exports.getLeaderboard = async (pollId) => {
             ],
         });
 
+
         if (!poll) {
             throw new Error('Poll not found');
         }

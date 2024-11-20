@@ -1,7 +1,7 @@
 const { producer, consumer, TOPICS } = require('../config/kafka');
 const { Vote, Option } = require('../models');
 const { WebSocketServer } = require('../services/websocketService');
-const { v4: uuidv4, validate } = require('uuid'); // Import validate function
+const { v4: uuidv4, validate } = require('uuid');
 
 const kafkaService = {
     async initialize() {
@@ -30,7 +30,6 @@ const kafkaService = {
                 throw new Error('Invalid UUID format for optionId');
             }
 
-            // Validate UUID for userId using the validate function if necessary
             if (!validate(voteData.userId)) {
                 throw new Error('Invalid UUID format for userId');
             }
@@ -77,7 +76,6 @@ async function startConsumer() {
 
                 const voteData = JSON.parse(message.value.toString());
 
-                // Validate UUID for optionId and userId
                 if (!validate(voteData.optionId)) {
                     console.error('Invalid UUID format for optionId');
                     return;

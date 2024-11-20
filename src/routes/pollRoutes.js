@@ -12,3 +12,4 @@ router.get('/getPoll/:id', pollController.getPoll);
 router.get('/allpolls', pollController.listPolls);
 
 module.exports = router;
+

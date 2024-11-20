@@ -1,4 +1,3 @@
-// src/services/voteService.js
 const kafkaService = require('./kafkaService');
 const { Option, Vote } = require('../models');
 

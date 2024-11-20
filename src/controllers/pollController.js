@@ -1,11 +1,9 @@
-// src/controllers/pollController.js
 const pollService = require('../services/pollService');
 
 // Create a new poll
 exports.createPoll = async (req, res) => {
   const pollData = req.body;
 
-  // Basic validation
   if (!pollData.title) {
     return res.status(400).json({ success: false, message: 'Poll title is required' });
   }
@@ -35,32 +33,32 @@ exports.getPoll = async (req, res) => {
   }
 };
 
-const getPoll = async (req, res) => {
-  try {
-    const poll = await Poll.findByPk(req.params.id, {
-      include: [{
-        model: Option,
-        as: 'Options',
-        attributes: {
-          exclude: ['PollId']
-        }
-      }]
-    });
+// const getPoll = async (req, res) => {
+//   try {
+//     const poll = await Poll.findByPk(req.params.id, {
+//       include: [{
+//         model: Option,
+//         as: 'Options',
+//         attributes: {
+//           exclude: ['PollId']
+//         }
+//       }]
+//     });
 
-    const pollData = poll.toJSON();
-    pollData.Options = pollData.Options.map(option => {
-      const { PollId, ...rest } = option;
-      return rest;
-    });
+//     const pollData = poll.toJSON();
+//     pollData.Options = pollData.Options.map(option => {
+//       const { PollId, ...rest } = option;
+//       return rest;
+//     });
 
-    res.json({
-      success: true,
-      data: pollData
-    });
-  } catch (error) {
-    // Error handling
-  }
-};
+//     res.json({
+//       success: true,
+//       data: pollData
+//     });
+//   } catch (error) {
+//     // Error handling
+//   }
+// };
 
 // List all polls
 exports.listPolls = async (req, res) => {

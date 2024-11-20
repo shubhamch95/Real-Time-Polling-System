@@ -1,4 +1,3 @@
-// src/models/Poll.js
 const { DataTypes } = require('sequelize');
 const { sequelize } = require('../config/database');
 
@@ -28,8 +27,9 @@ const Poll = sequelize.define('Poll', {
         allowNull: true
     }
 }, {
-    timestamps: true, // This is important
-    tableName: 'polls' // Explicitly set table name
+    timestamps: true,
+    tableName: 'polls'
 });
+
 
 module.exports = Poll;

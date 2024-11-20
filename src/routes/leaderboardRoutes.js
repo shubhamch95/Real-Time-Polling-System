@@ -10,3 +10,4 @@ router.get('/:pollId/option/:optionId', leaderboardController.getLeaderboardForO
 
 
 module.exports = router;
+

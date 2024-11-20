@@ -1,4 +1,3 @@
-// src/services/pollService.js
 const { Poll, Option } = require('../models');
 
 // Export functions at the start
@@ -8,7 +7,7 @@ exports.createPoll = async (pollData) => {
     try {
         // Create poll with its options in a transaction
         const result = await Poll.sequelize.transaction(async (t) => {
-            // Create the poll
+
             const poll = await Poll.create(
                 {
                     title,
