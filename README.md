@@ -117,20 +117,17 @@ GET /api/v1/polls/allpolls
 
 #### Votes
 
-###### POST /api/v1/vote/vote/:optionId
+###### POST /api/v1/vote/:optionId
 
  - Cast a vote for an option
 
 #### Leaderboard
 
-GET  /api/v1/leaderboard/poll/:pollId 
-- Get leaderboard for a specific poll
+GET  /api/v1/leaderboard/:pollId?
+- Get a leaderboard for a specific poll
 
-GET /api/v1/leaderboard/stats/:pollId 
-- Get detailed stats for a poll
-
-GET /api/v1/leaderboard/top-polls 
-- Get top polls
+GET /api/v1/leaderboard/:pollId/option/:optionId
+- Get the leaderboard for a specific option within a poll
 
 ## WebSocket Events
 
