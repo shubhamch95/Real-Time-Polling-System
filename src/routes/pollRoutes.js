@@ -1,15 +1,13 @@
 const express = require('express');
-const router = express.Router();
 const pollController = require('../controllers/pollController');
+const { authenticate } = require('../middleware/authenticate');
 
-// Route for creating a new poll
-router.post('/createPoll', pollController.createPoll);
+const router = express.Router();
 
-// Route for getting a specific poll
+router.post('/createPoll', authenticate, pollController.createPoll);
+router.put('/updatePoll/:pollId', authenticate, pollController.updatePoll);
 router.get('/getPoll/:id', pollController.getPoll);
-
-// Route for listing all polls
 router.get('/allpolls', pollController.listPolls);
+router.delete('/deletePoll/:pollId', authenticate, pollController.deletePoll);
 
 module.exports = router;
-

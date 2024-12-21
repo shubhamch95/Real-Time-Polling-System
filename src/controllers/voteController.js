@@ -2,25 +2,40 @@ const voteService = require('../services/voteService');
 const wsServer = require('../services/websocketService');
 
 exports.castVote = async (req, res) => {
-    const { optionId } = req.params;
-    const { userId = 'anonymous' } = req.body;
+    const { pollId, optionId } = req.params;
 
-    if (!optionId) {
-        return res.status(400).json({ success: false, message: 'Option ID is required' });
+    if (!req.user) {
+        return res.status(401).json({
+            success: false,
+            message: 'User not authenticated'
+        });
+    }
+
+    if (!pollId || !optionId) {
+        return res.status(400).json({
+            success: false,
+            message: 'Poll ID and Option ID are required'
+        });
     }
 
     try {
-        // Cast the vote
-        const result = await voteService.castVote({ optionId, userId });
+        const result = await voteService.castVote({
+            pollId,
+            optionId,
+            userId: req.user.id
+        });
 
-        // Broadcast the updated vote count to clients via WebSocket
         wsServer.broadcast('vote_update', result);
 
         return res.json({
-            success: true, message: 'Vote registered successfully', data: result
+            success: true,
+            message: 'Vote registered successfully',
+            data: result
         });
     } catch (error) {
-        console.error('Error in castVote controller:', error);
-        return res.status(400).json({ success: false, message: error.message });
+        return res.status(400).json({
+            success: false,
+            message: error.message
+        });
     }
 };

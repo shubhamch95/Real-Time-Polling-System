@@ -3,8 +3,9 @@ const { sequelize } = require('../config/database');
 
 const Poll = sequelize.define('Poll', {
     id: {
-        type: DataTypes.UUID,
-        defaultValue: DataTypes.UUIDV4,
+        type: DataTypes.INTEGER,
+        autoIncrement: true,
+        allowNull: false,
         primaryKey: true
     },
     title: {
@@ -25,11 +26,14 @@ const Poll = sequelize.define('Poll', {
     endDate: {
         type: DataTypes.DATE,
         allowNull: true
+    },
+    userId: {
+        type: DataTypes.INTEGER,
+        allowNull: false
     }
 }, {
     timestamps: true,
     tableName: 'polls'
 });
-
 
 module.exports = Poll;

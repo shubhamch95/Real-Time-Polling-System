@@ -3,6 +3,7 @@ const express = require('express');
 const http = require('http');
 const { sequelize } = require('./src/config/database');
 const pollRoutes = require('./src/routes/pollRoutes');
+const authRoutes = require('./src/routes/authRoutes');
 const voteRoutes = require('./src/routes/voteRoutes');
 const leaderboardRoutes = require('./src/routes/leaderboardRoutes');
 const { syncModels } = require('./src/models');
@@ -16,7 +17,8 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json());
 
 // Routes
-app.use('/api/v1/polls', pollRoutes);
+app.use('/auth', authRoutes);
+app.use('/api/v1/', pollRoutes);
 app.use('/api/v1', voteRoutes);
 app.use('/api/v1/leaderboard', leaderboardRoutes);
 

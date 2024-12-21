@@ -22,17 +22,12 @@ const Option = sequelize.define('Option', {
     }
   },
   pollId: {
-    type: DataTypes.UUID,
+    type: DataTypes.INTEGER,
     allowNull: false
   }
 }, {
   timestamps: true,
-  tableName: 'options',
-  defaultScope: {
-    attributes: {
-      exclude: ['PollId']
-    }
-  }
+  tableName: 'options'
 });
 
 module.exports = Option;

@@ -2,24 +2,23 @@ const { Poll, Option } = require('../models');
 
 exports.getLeaderboard = async (pollId) => {
     try {
-        // Fetch the poll with its options
+
         const poll = await Poll.findByPk(pollId, {
             include: [
                 {
                     model: Option,
+                    as: 'options',
                     attributes: ['id', 'text', 'voteCount'],
-                    order: [['voteCount', 'DESC']],
                 },
             ],
         });
-
 
         if (!poll) {
             throw new Error('Poll not found');
         }
 
-        // Sort options by vote count in descending order
-        const options = poll.Options.sort((a, b) => b.voteCount - a.voteCount);
+
+        const options = poll.options.sort((a, b) => b.voteCount - a.voteCount);
 
         return {
             pollId: poll.id,
@@ -36,27 +35,28 @@ exports.getLeaderboard = async (pollId) => {
     }
 };
 
-// Fetch leaderboard for a specific option in a poll
+
 exports.getLeaderboardForOption = async (pollId, optionId) => {
     try {
-        // Fetch the poll with the specific option
+
         const poll = await Poll.findOne({
             where: { id: pollId },
             include: [
                 {
                     model: Option,
-                    where: { id: optionId }, // Only fetch the specified option
+                    as: 'options',
+                    where: { id: optionId },
                     attributes: ['id', 'text', 'voteCount'],
                 },
             ],
         });
 
-        if (!poll) return null; // Return null if poll doesn't exist
+        if (!poll) return null;
 
-        // Find the specific option and its vote count
-        const option = poll.Options[0]; // Assuming there's only one option with the specified optionId
 
-        if (!option) return null; // Return null if option doesn't exist
+        const option = poll.options[0];
+
+        if (!option) return null;
 
         return {
             pollId: poll.id,
@@ -70,5 +70,3 @@ exports.getLeaderboardForOption = async (pollId, optionId) => {
         throw new Error(`Failed to fetch leaderboard for option ${optionId} in poll ${pollId}: ${error.message}`);
     }
 };
-
-

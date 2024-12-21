@@ -5,14 +5,10 @@ const kafka = new Kafka({
     brokers: ['localhost:9092']
 });
 
-
-// Create producer instance
 const producer = kafka.producer();
 
-// Create consumer instance
 const consumer = kafka.consumer({ groupId: 'polling-group' });
 
-// Topics
 const TOPICS = {
     VOTES: 'poll-votes'
 };

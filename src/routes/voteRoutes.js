@@ -1,9 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const voteController = require('../controllers/voteController');
+const { authenticate } = require('../middleware/authenticate');
 
-// Define the route for casting a vote
-router.post('/vote/:optionId', voteController.castVote);
+
+router.post('/castVote/:pollId/:optionId', authenticate, voteController.castVote);
 
 module.exports = router;
 
