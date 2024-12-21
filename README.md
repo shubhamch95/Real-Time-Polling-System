@@ -4,7 +4,9 @@ A scalable real-time polling system built with **Node.js**, **Express**, **Postg
 
 ## Features
 
-- Create and manage polls with multiple options
+- Authentication with sign-up and sign-in functionality
+- Only authenticated users can create, update, and delete polls
+- Only authenticated users can vote, and each user can vote only once in a poll
 - Real-time vote tracking using WebSocket
 - Event-driven architecture using Kafka
 - RESTful API endpoints
@@ -46,6 +48,7 @@ DB_PORT=5432
 DB_USER=postgres
 DB_PASSWORD=your_password
 DB_NAME=polling_system
+JWT_SECRET=your_jwt_secret
 ```
 
 ### 4. Set up PostgreSQL database:
@@ -54,7 +57,7 @@ DB_NAME=polling_system
 CREATE DATABASE polling_system;
 ```
 
-### 5. Start Kafka server and create required topics:
+### 5. Start the Kafka server and create the required topics:
 
 #### Start Zookeeper
 To start the Zookeeper server, run the following command:
@@ -82,18 +85,23 @@ src/
 │   ├── database.js
 │   └── kafka.js
 ├── controllers/
+│   ├── auth.js
 │   ├── pollController.js
 │   ├── voteController.js
 │   └── leaderboardController.js
+├── middleware/
+│   └── authenticate.js
 ├── models/
 │   ├── index.js
 │   ├── Poll.js
 │   ├── Option.js
-│   └── Vote.js
+│   ├── Vote.js
+│   └── User.js
 ├── routes/
 │   ├── pollRoutes.js
 │   ├── voteRoutes.js
-│   └── leaderboardRoutes.js
+│   ├── leaderboardRoutes.js
+│   └── authRoutes.js
 ├── services/
 │   ├── pollService.js
 │   ├── voteService.js
@@ -104,16 +112,32 @@ src/
 ```
 
 ## API Endpoints
+
+#### Authentication
+
+POST /api/v1/auth/signUp
+ - Sign up a new user
+
+POST /api/v1/auth/signIn
+ - Sign in an existing user and get a JWT token
+
+
 #### Polls
 
 POST /api/v1/polls/createPoll 
-- Create a new poll
+- Create a new poll (authenticated users only)
 
 GET /api/v1/polls/getPoll/:id 
 - Get poll by ID
 
 GET /api/v1/polls/allpolls 
 - List all polls
+
+PUT /api/v1/polls/updatePoll/:id
+ - Update a poll (authenticated users only)
+
+DELETE /api/v1/polls/deletePoll/:id
+ - Delete a poll (authenticated users only)
 
 #### Votes
 
@@ -182,6 +206,8 @@ node src/testWebSocketClient.js
 #### The application includes comprehensive error handling:
 
 - Input validation
+
+- Authentication errors (for protected routes)
 
 - Database connection errors
 
